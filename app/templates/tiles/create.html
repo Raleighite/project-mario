@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Create Custom Tile — Project Mario{% endblock %}
+
+{% block content %}
+<h1>Create Custom Tile</h1>
+<p>Design your own tile barcode. The code must be 5 unique colors starting with GR, BR, or TR.</p>
+<p>Valid colors: <strong>G</strong>(reen), <strong>R</strong>(ed), <strong>B</strong>(lue), <strong>L</strong>(ime), <strong>P</strong>(ink), <strong>V</strong>(iolet), <strong>Y</strong>(ellow), <strong>T</strong>(eal)</p>
+
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <div>
+        {{ form.code.label }}<br>
+        {{ form.code(size=10, placeholder="e.g. GRLBV", style="text-transform: uppercase") }}
+        {% for error in form.code.errors %}
+            <span class="error">{{ error }}</span>
+        {% endfor %}
+    </div>
+    <div>
+        {{ form.label.label }}<br>
+        {{ form.label(size=32) }}
+        {% for error in form.label.errors %}
+            <span class="error">{{ error }}</span>
+        {% endfor %}
+    </div>
+    <div>
+        {{ form.category.label }}<br>
+        {{ form.category() }}
+        {% for error in form.category.errors %}
+            <span class="error">{{ error }}</span>
+        {% endfor %}
+    </div>
+    <div>
+        {{ form.note.label }}<br>
+        {{ form.note(rows=3, cols=40) }}
+    </div>
+    <div>
+        {{ form.hit_points.label }}<br>
+        {{ form.hit_points(size=5) }}
+        {% for error in form.hit_points.errors %}
+            <span class="error">{{ error }}</span>
+        {% endfor %}
+    </div>
+    <div>{{ form.submit() }}</div>
+</form>
+{% endblock %}

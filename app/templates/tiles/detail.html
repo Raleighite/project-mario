@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{{ tile.label }} ({{ tile.code }}) — Project Mario{% endblock %}
+
+{% block content %}
+<p><a href="{{ url_for('web.tiles_index') }}">Back to Tiles</a></p>
+
+<h1>{{ tile.label }}</h1>
+
+<div class="tile-detail">
+    <div class="tile-barcode-large">
+        {{ svg|safe }}
+    </div>
+
+    <table class="tile-meta">
+        <tr><th>Code</th><td><code>{{ tile.code }}</code></td></tr>
+        <tr><th>Category</th><td>{{ category_labels.get(tile.category, tile.category) }}</td></tr>
+        {% if tile.note %}
+            <tr><th>Description</th><td>{{ tile.note }}</td></tr>
+        {% endif %}
+        {% if tile.hit_points %}
+            <tr><th>Hit Points</th><td>{{ tile.hit_points }}</td></tr>
+        {% endif %}
+        {% if tile.is_custom %}
+            <tr><th>Type</th><td>Custom tile</td></tr>
+        {% endif %}
+    </table>
+
+    <div class="tile-actions">
+        <a href="{{ url_for('web.tile_print', tile_id=tile.id) }}" class="btn">Print View</a>
+        <a href="{{ url_for('api.tile_barcode_png', tile_id=tile.id) }}" class="btn" download="{{ tile.code }}.png">Download PNG</a>
+        <a href="{{ url_for('api.tile_barcode_svg', tile_id=tile.id) }}" class="btn" download="{{ tile.code }}.svg">Download SVG</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Print — {{ tile.label }} ({{ tile.code }})</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .print-barcode {
+            margin: 40px 0;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .code {
+            font-family: monospace;
+            font-size: 18px;
+            color: #666;
+        }
+        .no-print {
+            margin-top: 30px;
+        }
+        @media print {
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ tile.label }}</h1>
+    <div class="code">{{ tile.code }}</div>
+    <div class="print-barcode">
+        {{ svg|safe }}
+    </div>
+    <div class="no-print">
+        <button onclick="window.print()">Print</button>
+        <a href="{{ url_for('web.tile_detail', tile_id=tile.id) }}">Back to detail</a>
+    </div>
+</body>
+</html>

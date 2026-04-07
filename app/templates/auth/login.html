@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Login — Project Mario{% endblock %}
+
+{% block content %}
+<h1>Login</h1>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <div>
+        {{ form.username.label }}<br>
+        {{ form.username(size=32) }}
+        {% for error in form.username.errors %}
+            <span class="error">{{ error }}</span>
+        {% endfor %}
+    </div>
+    <div>
+        {{ form.password.label }}<br>
+        {{ form.password(size=32) }}
+        {% for error in form.password.errors %}
+            <span class="error">{{ error }}</span>
+        {% endfor %}
+    </div>
+    <div>{{ form.remember_me() }} {{ form.remember_me.label }}</div>
+    <div>{{ form.submit() }}</div>
+</form>
+<p>New user? <a href="{{ url_for('web.register') }}">Register here</a></p>
+{% endblock %}

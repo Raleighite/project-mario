@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Tiles — Project Mario{% endblock %}
+
+{% block content %}
+<h1>Tile Browser</h1>
+
+<div class="tile-controls">
+    <form method="GET" class="search-form">
+        <input type="text" name="search" placeholder="Search tiles..." value="{{ search or '' }}">
+        {% if current_category %}
+            <input type="hidden" name="category" value="{{ current_category }}">
+        {% endif %}
+        <input type="submit" value="Search">
+    </form>
+
+    <div class="category-filter">
+        <a href="{{ url_for('web.tiles_index') }}" class="{{ '' if current_category else 'active' }}">All</a>
+        {% for cat in categories %}
+            <a href="{{ url_for('web.tiles_index', category=cat) }}"
+               class="{{ 'active' if current_category == cat else '' }}">
+                {{ category_labels.get(cat, cat) }}
+            </a>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="tile-grid">
+    {% for tile in tiles %}
+        <a href="{{ url_for('web.tile_detail', tile_id=tile.id) }}" class="tile-card">
+            <div class="tile-barcode">
+                {{ generate_barcode_svg(tile.code, bar_width=20, bar_height=60, gap=1)|safe }}
+            </div>
+            <div class="tile-info">
+                <strong>{{ tile.label }}</strong>
+                <span class="tile-code">{{ tile.code }}</span>
+            </div>
+        </a>
+    {% else %}
+        <p>No tiles found.</p>
+    {% endfor %}
+</div>
+
+{% if pagination.pages > 1 %}
+    <div class="pagination">
+        {% if pagination.has_prev %}
+            <a href="{{ url_for('web.tiles_index', page=pagination.prev_num, category=current_category, search=search) }}">Previous</a>
+        {% endif %}
+        <span>Page {{ pagination.page }} of {{ pagination.pages }}</span>
+        {% if pagination.has_next %}
+            <a href="{{ url_for('web.tiles_index', page=pagination.next_num, category=current_category, search=search) }}">Next</a>
+        {% endif %}
+    </div>
+{% endif %}
+
+{% if current_user.is_authenticated %}
+    <p style="margin-top: 20px;"><a href="{{ url_for('web.tile_create') }}">Create Custom Tile</a></p>
+{% endif %}
+{% endblock %}

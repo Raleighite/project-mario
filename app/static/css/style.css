@@ -1,0 +1,258 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+nav {
+    padding: 10px 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+nav a {
+    margin-right: 15px;
+    text-decoration: none;
+    color: #0066cc;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+h1 {
+    margin-bottom: 15px;
+}
+
+form div {
+    margin-bottom: 10px;
+}
+
+input[type="text"],
+input[type="password"] {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+input[type="submit"] {
+    padding: 8px 16px;
+    background: #0066cc;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+input[type="submit"]:hover {
+    background: #0052a3;
+}
+
+.flash {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
+.flash.success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.flash.error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.error {
+    color: #dc3545;
+    font-size: 0.9em;
+}
+
+/* Tile styles */
+.tile-controls {
+    margin-bottom: 20px;
+}
+
+.search-form {
+    display: inline-flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.category-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.category-filter a {
+    padding: 4px 10px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    text-decoration: none;
+    font-size: 0.85em;
+    color: #555;
+}
+
+.category-filter a.active {
+    background: #0066cc;
+    color: white;
+    border-color: #0066cc;
+}
+
+.tile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.tile-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    text-decoration: none;
+    color: #333;
+    transition: box-shadow 0.15s;
+}
+
+.tile-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.tile-barcode {
+    margin-bottom: 8px;
+}
+
+.tile-barcode svg {
+    max-width: 100%;
+    height: auto;
+}
+
+.tile-info strong {
+    display: block;
+    font-size: 0.9em;
+}
+
+.tile-code {
+    font-family: monospace;
+    font-size: 0.8em;
+    color: #888;
+}
+
+.tile-detail {
+    margin-top: 15px;
+}
+
+.tile-barcode-large {
+    margin: 20px 0;
+}
+
+.tile-barcode-large svg {
+    max-width: 100%;
+    height: auto;
+}
+
+.tile-meta {
+    margin: 15px 0;
+    border-collapse: collapse;
+}
+
+.tile-meta th {
+    text-align: left;
+    padding: 6px 20px 6px 0;
+    color: #666;
+}
+
+.tile-meta td {
+    padding: 6px 0;
+}
+
+.tile-actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #0066cc;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.btn:hover {
+    background: #0052a3;
+}
+
+.pagination {
+    margin-top: 20px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+/* Course styles */
+.course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.course-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    text-decoration: none;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: box-shadow 0.15s;
+}
+
+.course-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.course-meta {
+    font-size: 0.85em;
+    color: #888;
+}
+
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75em;
+    font-weight: 500;
+}
+
+.badge.public {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge.private {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.canvas-view {
+    max-width: 100%;
+    overflow: auto;
+}

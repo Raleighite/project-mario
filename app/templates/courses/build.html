@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Build: {{ course.name }} — Project Mario</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/builder.css') }}">
+</head>
+<body>
+    <div class="builder-toolbar">
+        <a href="{{ url_for('web.course_detail', course_id=course.id) }}" class="toolbar-link">Back to Course</a>
+        <span class="toolbar-title">{{ course.name }}</span>
+        <button id="save-btn" class="toolbar-btn save-btn">Save</button>
+        <span id="save-status" class="save-status"></span>
+    </div>
+
+    <div class="builder-layout">
+        <div class="palette">
+            <div class="palette-header">
+                <input type="text" id="palette-search" placeholder="Search tiles...">
+            </div>
+            <div class="palette-categories" id="palette-categories"></div>
+            <div class="palette-tiles" id="palette-tiles"></div>
+        </div>
+
+        <div class="canvas-wrapper">
+            <div class="canvas"
+                 id="canvas"
+                 style="width: {{ course.canvas_width }}px; height: {{ course.canvas_height }}px;">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.COURSE_ID = {{ course.id }};
+        window.CANVAS_WIDTH = {{ course.canvas_width }};
+        window.CANVAS_HEIGHT = {{ course.canvas_height }};
+        window.API_BASE = "{{ url_for('api.list_tiles') }}".replace('/tiles', '');
+    </script>
+    <script src="{{ url_for('static', filename='js/builder.js') }}"></script>
+</body>
+</html>
