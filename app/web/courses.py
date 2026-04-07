@@ -43,6 +43,7 @@ def course_create():
         course = Course(
             name=form.name.data,
             description=form.description.data or None,
+            plate_type=form.plate_type.data,
             is_public=form.is_public.data,
             created_by_id=current_user.id,
         )

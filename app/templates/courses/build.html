@@ -10,6 +10,9 @@
     <div class="builder-toolbar">
         <a href="{{ url_for('web.course_detail', course_id=course.id) }}" class="toolbar-link">Back to Course</a>
         <span class="toolbar-title">{{ course.name }}</span>
+        <div class="plate-type-badge">
+            <span class="plate-type-label" id="plate-type-label"></span>
+        </div>
         <button id="save-btn" class="toolbar-btn save-btn">Save</button>
         <span id="save-status" class="save-status"></span>
     </div>
@@ -23,18 +26,25 @@
             <div class="palette-tiles" id="palette-tiles"></div>
         </div>
 
-        <div class="canvas-wrapper">
-            <div class="canvas"
-                 id="canvas"
-                 style="width: {{ course.canvas_width }}px; height: {{ course.canvas_height }}px;">
+        <div class="canvas-area">
+            <div class="plate-nav">
+                <button id="prev-plate" class="toolbar-btn plate-nav-btn" disabled>&larr;</button>
+                <span id="plate-indicator" class="plate-indicator"></span>
+                <button id="next-plate" class="toolbar-btn plate-nav-btn">&rarr;</button>
+                <button id="add-plate" class="toolbar-btn add-plate-btn" title="Add a new plate">+ Add Plate</button>
+                <button id="remove-plate" class="toolbar-btn remove-plate-btn" title="Remove current plate (must be empty)">Remove Plate</button>
+            </div>
+
+            <div class="canvas-wrapper">
+                <div class="canvas" id="canvas"></div>
             </div>
         </div>
     </div>
 
     <script>
         window.COURSE_ID = {{ course.id }};
-        window.CANVAS_WIDTH = {{ course.canvas_width }};
-        window.CANVAS_HEIGHT = {{ course.canvas_height }};
+        window.PLATE_TYPE = "{{ course.plate_type }}";
+        window.PLATE_STUDS = {{ course.PLATE_STUDS }};
         window.API_BASE = "{{ url_for('api.list_tiles') }}".replace('/tiles', '');
     </script>
     <script src="{{ url_for('static', filename='js/builder.js') }}"></script>

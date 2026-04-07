@@ -11,6 +11,7 @@
 <p class="course-meta">
     by {{ course.created_by.username }} |
     {{ placements|length }} tiles |
+    {{ course.plate_type|upper }} plate |
     {% if course.is_public %}<span class="badge public">Public</span>{% else %}<span class="badge private">Private</span>{% endif %}
 </p>
 
@@ -18,17 +19,39 @@
     <p><a href="{{ url_for('web.course_build', course_id=course.id) }}" class="btn">Edit Course</a></p>
 {% endif %}
 
-<div class="canvas-view" style="position: relative; width: {{ course.canvas_width }}px; height: {{ course.canvas_height }}px; border: 2px solid #ddd; background: #fafafa; margin-top: 15px; overflow: hidden;">
+{% set stud_px = 24 %}
+{% set plate_px = course.PLATE_STUDS * stud_px %}
+
+{% set ns = namespace(max_plate=0) %}
+{% for p in placements %}
+    {% if p.plate_index > ns.max_plate %}
+        {% set ns.max_plate = p.plate_index %}
+    {% endif %}
+{% endfor %}
+
+{% for plate_idx in range(ns.max_plate + 1) %}
+<h3 style="margin-top: 20px;">Plate {{ plate_idx + 1 }}</h3>
+<div class="canvas-view" style="position: relative; width: {{ plate_px }}px; height: {{ plate_px }}px; border: 2px solid #ddd; background: #f5f0e0; margin-top: 8px; overflow: hidden;">
+    {% if course.plate_type == 'mils' %}
+    <div style="position: absolute; inset: 0; border: {{ stud_px }}px solid rgba(100,100,100,0.15); pointer-events: none;"></div>
+    {% endif %}
     {% for p in placements %}
+        {% if p.plate_index == plate_idx %}
         <div style="position: absolute; left: {{ p.x }}px; top: {{ p.y }}px; text-align: center; font-size: 11px; pointer-events: none;">
-            <div style="width: 60px; height: 36px; display: flex; gap: 1px;">
+            <div style="display: flex; gap: 1px;">
                 {% for c in p.tile.code %}
                     {% set colors = {'G': '#229551', 'R': '#cb2129', 'B': '#0000ff', 'L': '#aed252', 'P': '#d166a7', 'V': '#9b78b5', 'Y': '#f9dc2a', 'T': '#1baaa3'} %}
-                    <div style="flex: 1; background: {{ colors[c] }}; border: 1px solid #333;"></div>
+                    <div style="width: 10px; height: 32px; background: {{ colors[c] }}; border: 1px solid #333;"></div>
                 {% endfor %}
             </div>
             <div style="margin-top: 2px; white-space: nowrap;">{{ p.tile.label }}</div>
         </div>
+        {% endif %}
     {% endfor %}
 </div>
+{% endfor %}
+
+{% if placements|length == 0 %}
+<p style="margin-top: 15px; color: #888;">No tiles placed yet.</p>
+{% endif %}
 {% endblock %}

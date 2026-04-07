@@ -29,6 +29,18 @@ def test_create_course(client, db):
     data = resp.get_json()
     assert data['name'] == 'My Course'
     assert data['is_public'] is True
+    assert data['plate_type'] == 'mils'
+
+
+def test_create_course_with_plate_type(client, db):
+    user, _ = _setup(db)
+    _login(client)
+    resp = client.post('/api/v1/courses', json={
+        'name': 'Standard Course',
+        'plate_type': 'standard',
+    })
+    assert resp.status_code == 201
+    assert resp.get_json()['plate_type'] == 'standard'
 
 
 def test_create_course_unauthenticated(client):
@@ -131,13 +143,15 @@ def test_save_course_tiles(client, db):
     _login(client)
     resp = client.put(f'/api/v1/courses/{course.id}/tiles', json={
         'tiles': [
-            {'tile_id': tile.id, 'x': 100, 'y': 200},
-            {'tile_id': tile.id, 'x': 300, 'y': 400},
+            {'tile_id': tile.id, 'x': 100, 'y': 200, 'plate_index': 0},
+            {'tile_id': tile.id, 'x': 300, 'y': 400, 'plate_index': 1},
         ]
     })
     assert resp.status_code == 200
     data = resp.get_json()
     assert len(data['tiles']) == 2
+    assert data['tiles'][0]['plate_index'] == 0
+    assert data['tiles'][1]['plate_index'] == 1
 
 
 def test_save_course_tiles_replaces(client, db):

@@ -47,10 +47,15 @@ def create_course():
     if not name:
         return jsonify({'error': 'Missing required field: name'}), 400
 
+    plate_type = data.get('plate_type', 'mils')
+    if plate_type not in Course.PLATE_TYPES:
+        return jsonify({'error': f'Invalid plate_type. Must be one of: {Course.PLATE_TYPES}'}), 400
+
     course = Course(
         name=name,
         description=data.get('description'),
         is_public=data.get('is_public', False),
+        plate_type=plate_type,
         canvas_width=data.get('canvas_width', 1200),
         canvas_height=data.get('canvas_height', 800),
         created_by_id=current_user.id,
@@ -93,6 +98,10 @@ def update_course(course_id):
         course.description = data['description']
     if 'is_public' in data:
         course.is_public = data['is_public']
+    if 'plate_type' in data:
+        if data['plate_type'] not in Course.PLATE_TYPES:
+            return jsonify({'error': f'Invalid plate_type. Must be one of: {Course.PLATE_TYPES}'}), 400
+        course.plate_type = data['plate_type']
     if 'canvas_width' in data:
         course.canvas_width = data['canvas_width']
     if 'canvas_height' in data:
@@ -133,6 +142,7 @@ def save_course_tiles(course_id):
             tile_id=entry['tile_id'],
             x=float(entry['x']),
             y=float(entry['y']),
+            plate_index=int(entry.get('plate_index', 0)),
         )
         db.session.add(ct)
 

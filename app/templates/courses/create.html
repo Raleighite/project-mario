@@ -18,6 +18,14 @@
         {{ form.description(rows=3, cols=40) }}
     </div>
     <div>
+        {{ form.plate_type.label }}<br>
+        {{ form.plate_type() }}
+        <p class="help-text" style="font-size: 0.85em; color: #666; margin-top: 4px;">
+            MILS plates use a modular standard (32&times;32 studs) with a border for interlocking.
+            Standard base plates are plain 32&times;32 stud plates.
+        </p>
+    </div>
+    <div>
         {{ form.is_public() }} {{ form.is_public.label }}
     </div>
     <div>{{ form.submit() }}</div>

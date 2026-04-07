@@ -3,10 +3,14 @@ from app.extensions import db
 
 
 class Course(db.Model):
+    PLATE_TYPES = ('mils', 'standard')
+    PLATE_STUDS = 32  # studs per side on a standard LEGO base plate
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
     is_public = db.Column(db.Boolean, default=False, nullable=False)
+    plate_type = db.Column(db.String(20), default='mils', nullable=False)
     canvas_width = db.Column(db.Integer, default=1200, nullable=False)
     canvas_height = db.Column(db.Integer, default=800, nullable=False)
     created_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -28,6 +32,8 @@ class Course(db.Model):
             'name': self.name,
             'description': self.description,
             'is_public': self.is_public,
+            'plate_type': self.plate_type,
+            'plate_studs': self.PLATE_STUDS,
             'canvas_width': self.canvas_width,
             'canvas_height': self.canvas_height,
             'created_by_id': self.created_by_id,
@@ -50,6 +56,7 @@ class CourseTile(db.Model):
     tile_id = db.Column(db.Integer, db.ForeignKey('tile.id'), nullable=False)
     x = db.Column(db.Float, nullable=False)
     y = db.Column(db.Float, nullable=False)
+    plate_index = db.Column(db.Integer, default=0, nullable=False)
 
     tile = db.relationship('Tile')
 
@@ -59,6 +66,7 @@ class CourseTile(db.Model):
             'tile_id': self.tile_id,
             'x': self.x,
             'y': self.y,
+            'plate_index': self.plate_index,
             'tile': self.tile.to_dict() if self.tile else None,
         }
 

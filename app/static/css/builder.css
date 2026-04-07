@@ -64,6 +64,21 @@ body {
     color: #aaa;
 }
 
+.plate-type-badge {
+    display: flex;
+    align-items: center;
+}
+
+.plate-type-label {
+    font-size: 0.75em;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #555;
+    color: #ccc;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
 /* Layout */
 .builder-layout {
     display: flex;
@@ -164,20 +179,108 @@ body {
 }
 
 /* Canvas area */
+.canvas-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Plate navigation bar */
+.plate-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 15px;
+    background: #e8e8e8;
+    border-bottom: 1px solid #ccc;
+    flex-shrink: 0;
+}
+
+.plate-nav-btn {
+    background: #fff;
+    border: 1px solid #bbb;
+    padding: 4px 12px;
+    font-size: 0.85em;
+}
+
+.plate-nav-btn:hover:not(:disabled) {
+    background: #ddd;
+}
+
+.plate-nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.plate-indicator {
+    font-size: 0.9em;
+    font-weight: 600;
+    color: #333;
+    min-width: 100px;
+    text-align: center;
+}
+
+.add-plate-btn {
+    background: #e7f3ff;
+    border: 1px solid #0066cc;
+    color: #0066cc;
+    font-size: 0.8em;
+    padding: 4px 10px;
+    margin-left: auto;
+}
+
+.add-plate-btn:hover {
+    background: #cce4ff;
+}
+
+.remove-plate-btn {
+    background: #fff0f0;
+    border: 1px solid #cc3333;
+    color: #cc3333;
+    font-size: 0.8em;
+    padding: 4px 10px;
+}
+
+.remove-plate-btn:hover:not(:disabled) {
+    background: #ffe0e0;
+}
+
+.remove-plate-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Canvas wrapper and canvas */
 .canvas-wrapper {
     flex: 1;
     overflow: auto;
+    display: flex;
+    justify-content: center;
     padding: 20px;
 }
 
 .canvas {
     position: relative;
-    background: white;
+    background: #f5f0e0;
     border: 2px solid #bbb;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    background-image:
-        radial-gradient(circle, #ddd 1px, transparent 1px);
-    background-size: 40px 40px;
+    flex-shrink: 0;
+}
+
+/* Stud grid dots */
+.canvas .stud-grid {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+/* MILS border overlay */
+.canvas .mils-border {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border: var(--stud-size, 24px) solid rgba(100, 100, 100, 0.15);
 }
 
 /* Placed tiles on canvas */
@@ -242,4 +345,14 @@ body {
 .canvas.drag-over {
     border-color: #0066cc;
     background-color: #f0f7ff;
+}
+
+/* Snap indicator (ghost grid cell highlight) */
+.snap-indicator {
+    position: absolute;
+    background: rgba(0, 102, 204, 0.15);
+    border: 1px dashed rgba(0, 102, 204, 0.4);
+    pointer-events: none;
+    border-radius: 2px;
+    display: none;
 }

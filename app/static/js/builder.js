@@ -1,10 +1,14 @@
 /**
- * Course Map Builder — drag and drop tile placement on a free-form canvas.
+ * Course Map Builder — plate-based drag-and-drop tile placement.
+ *
+ * Each plate is a 32×32 stud LEGO base plate. Tiles snap to stud positions.
+ * Multiple plates act like pages in a document. MILS plates show a border zone.
  *
  * Globals expected from the template:
- *   window.COURSE_ID  — current course ID
- *   window.CANVAS_WIDTH / CANVAS_HEIGHT
- *   window.API_BASE — e.g. "/api/v1/"
+ *   window.COURSE_ID   — current course ID
+ *   window.PLATE_TYPE  — 'mils' or 'standard'
+ *   window.PLATE_STUDS — studs per side (32)
+ *   window.API_BASE    — e.g. "/api/v1/"
  */
 
 const COLOR_HEX = {
@@ -12,23 +16,85 @@ const COLOR_HEX = {
     P: '#d166a7', V: '#9b78b5', Y: '#f9dc2a', T: '#1baaa3',
 };
 
-// ── State ──────────────────────────────────────────────────────────────────
+// ── Plate constants ─────────────────────────────────────────────────────────
+const STUD_PX = 24;  // pixels per stud
+const PLATE_PX = PLATE_STUDS * STUD_PX;  // 768px for 32 studs
+
+// ── State ───────────────────────────────────────────────────────────────────
 let allTiles = [];            // full tile catalog from API
-let placedTiles = [];         // [{placementId, tileId, x, y, tile, el}]
+let placedTiles = [];         // [{placementId, tileId, x, y, plateIndex, tile, el}]
 let nextPlacementId = 1;
 let currentCategory = null;
 let searchQuery = '';
 let isDirty = false;
+let currentPlate = 0;         // active plate index (0-based)
+let plateCount = 1;           // total number of plates
 
-// ── DOM refs ───────────────────────────────────────────────────────────────
+// ── DOM refs ────────────────────────────────────────────────────────────────
 const canvas = document.getElementById('canvas');
 const paletteTilesEl = document.getElementById('palette-tiles');
 const paletteCatsEl = document.getElementById('palette-categories');
 const paletteSearch = document.getElementById('palette-search');
 const saveBtn = document.getElementById('save-btn');
 const saveStatus = document.getElementById('save-status');
+const prevPlateBtn = document.getElementById('prev-plate');
+const nextPlateBtn = document.getElementById('next-plate');
+const addPlateBtn = document.getElementById('add-plate');
+const removePlateBtn = document.getElementById('remove-plate');
+const plateIndicator = document.getElementById('plate-indicator');
+const plateTypeLabel = document.getElementById('plate-type-label');
 
-// ── Barcode helpers ────────────────────────────────────────────────────────
+// ── Canvas setup ────────────────────────────────────────────────────────────
+function initCanvas() {
+    canvas.style.width = PLATE_PX + 'px';
+    canvas.style.height = PLATE_PX + 'px';
+
+    // Draw stud grid as SVG
+    drawStudGrid();
+
+    // Show MILS border if applicable
+    if (PLATE_TYPE === 'mils') {
+        const border = document.createElement('div');
+        border.className = 'mils-border';
+        border.style.setProperty('--stud-size', STUD_PX + 'px');
+        canvas.appendChild(border);
+    }
+
+    // Plate type label in toolbar
+    plateTypeLabel.textContent = PLATE_TYPE === 'mils' ? 'MILS 32×32' : 'Standard 32×32';
+}
+
+function drawStudGrid() {
+    const existing = canvas.querySelector('.stud-grid');
+    if (existing) existing.remove();
+
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('class', 'stud-grid');
+    svg.setAttribute('width', PLATE_PX);
+    svg.setAttribute('height', PLATE_PX);
+    svg.style.position = 'absolute';
+    svg.style.inset = '0';
+    svg.style.pointerEvents = 'none';
+
+    // Draw stud circles
+    for (let row = 0; row < PLATE_STUDS; row++) {
+        for (let col = 0; col < PLATE_STUDS; col++) {
+            const cx = col * STUD_PX + STUD_PX / 2;
+            const cy = row * STUD_PX + STUD_PX / 2;
+            const circle = document.createElementNS(svgNS, 'circle');
+            circle.setAttribute('cx', cx);
+            circle.setAttribute('cy', cy);
+            circle.setAttribute('r', 3);
+            circle.setAttribute('fill', 'rgba(0,0,0,0.12)');
+            svg.appendChild(circle);
+        }
+    }
+
+    canvas.insertBefore(svg, canvas.firstChild);
+}
+
+// ── Barcode helpers ─────────────────────────────────────────────────────────
 function renderMiniBarcode(code) {
     return code.split('').map(c =>
         `<div class="bar" style="background:${COLOR_HEX[c]}"></div>`
@@ -41,9 +107,13 @@ function renderBarcode(code) {
     ).join('');
 }
 
-// ── Palette ────────────────────────────────────────────────────────────────
+// ── Snap to grid ────────────────────────────────────────────────────────────
+function snapToGrid(px) {
+    return Math.round(px / STUD_PX) * STUD_PX;
+}
+
+// ── Palette ─────────────────────────────────────────────────────────────────
 async function loadTiles() {
-    // Fetch all tiles (paginate through if needed)
     let page = 1;
     let tiles = [];
     while (true) {
@@ -96,7 +166,6 @@ function renderPalette() {
         </div>
     `).join('');
 
-    // Attach drag events
     paletteTilesEl.querySelectorAll('.palette-tile').forEach(el => {
         el.addEventListener('dragstart', onPaletteDragStart);
     });
@@ -107,14 +176,14 @@ paletteSearch.addEventListener('input', (e) => {
     renderPalette();
 });
 
-// ── Drag from Palette ──────────────────────────────────────────────────────
+// ── Drag from Palette ───────────────────────────────────────────────────────
 function onPaletteDragStart(e) {
     const tileId = parseInt(e.currentTarget.dataset.tileId);
     e.dataTransfer.setData('application/x-tile-id', tileId.toString());
     e.dataTransfer.effectAllowed = 'copy';
 }
 
-// ── Canvas Drop Zone ───────────────────────────────────────────────────────
+// ── Canvas Drop Zone ────────────────────────────────────────────────────────
 canvas.addEventListener('dragover', (e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'copy';
@@ -137,17 +206,80 @@ canvas.addEventListener('drop', (e) => {
     if (!tile) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left + canvas.scrollLeft;
-    const y = e.clientY - rect.top + canvas.scrollTop;
+    const rawX = e.clientX - rect.left + canvas.scrollLeft;
+    const rawY = e.clientY - rect.top + canvas.scrollTop;
 
-    addPlacedTile(tile, x - 30, y - 20);  // offset to center on cursor
+    // Snap to nearest stud position
+    const x = snapToGrid(rawX - 30);
+    const y = snapToGrid(rawY - 20);
+
+    addPlacedTile(tile, x, y, currentPlate);
 });
 
-// ── Placed Tiles ───────────────────────────────────────────────────────────
-function addPlacedTile(tile, x, y, placementId) {
-    // Clamp to canvas bounds
-    x = Math.max(0, Math.min(x, CANVAS_WIDTH - 60));
-    y = Math.max(0, Math.min(y, CANVAS_HEIGHT - 50));
+// ── Plate Navigation ────────────────────────────────────────────────────────
+function updatePlateUI() {
+    plateIndicator.textContent = `Plate ${currentPlate + 1} of ${plateCount}`;
+    prevPlateBtn.disabled = currentPlate === 0;
+    nextPlateBtn.disabled = currentPlate >= plateCount - 1;
+
+    // Can't remove the last plate, or a plate that has tiles
+    const tilesOnPlate = placedTiles.filter(p => p.plateIndex === currentPlate);
+    removePlateBtn.disabled = plateCount <= 1 || tilesOnPlate.length > 0;
+
+    // Show/hide tiles based on current plate
+    placedTiles.forEach(p => {
+        p.el.style.display = p.plateIndex === currentPlate ? '' : 'none';
+    });
+}
+
+prevPlateBtn.addEventListener('click', () => {
+    if (currentPlate > 0) {
+        currentPlate--;
+        updatePlateUI();
+    }
+});
+
+nextPlateBtn.addEventListener('click', () => {
+    if (currentPlate < plateCount - 1) {
+        currentPlate++;
+        updatePlateUI();
+    }
+});
+
+addPlateBtn.addEventListener('click', () => {
+    plateCount++;
+    currentPlate = plateCount - 1;
+    updatePlateUI();
+    markDirty();
+});
+
+removePlateBtn.addEventListener('click', () => {
+    if (plateCount <= 1) return;
+    const tilesOnPlate = placedTiles.filter(p => p.plateIndex === currentPlate);
+    if (tilesOnPlate.length > 0) return;
+
+    // Shift down plate indices for plates after the removed one
+    placedTiles.forEach(p => {
+        if (p.plateIndex > currentPlate) {
+            p.plateIndex--;
+        }
+    });
+
+    plateCount--;
+    if (currentPlate >= plateCount) {
+        currentPlate = plateCount - 1;
+    }
+    updatePlateUI();
+    markDirty();
+});
+
+// ── Placed Tiles ────────────────────────────────────────────────────────────
+function addPlacedTile(tile, x, y, plateIndex, placementId) {
+    // Snap and clamp to plate bounds
+    x = snapToGrid(x);
+    y = snapToGrid(y);
+    x = Math.max(0, Math.min(x, PLATE_PX - STUD_PX * 3));
+    y = Math.max(0, Math.min(y, PLATE_PX - STUD_PX * 2));
 
     const id = placementId || nextPlacementId++;
     if (!placementId && id >= nextPlacementId) nextPlacementId = id + 1;
@@ -158,24 +290,27 @@ function addPlacedTile(tile, x, y, placementId) {
     el.style.top = y + 'px';
     el.dataset.placementId = id;
 
+    // Hide if not on current plate
+    if (plateIndex !== currentPlate) {
+        el.style.display = 'none';
+    }
+
     el.innerHTML = `
         <div class="barcode">${renderBarcode(tile.code)}</div>
         <div class="label">${tile.label}</div>
         <button class="remove-btn" title="Remove">&times;</button>
     `;
 
-    // Remove button
     el.querySelector('.remove-btn').addEventListener('click', (e) => {
         e.stopPropagation();
         removePlacedTile(id);
     });
 
-    // Drag to reposition
     makeDraggable(el, id);
 
     canvas.appendChild(el);
 
-    const placement = { placementId: id, tileId: tile.id, x, y, tile, el };
+    const placement = { placementId: id, tileId: tile.id, x, y, plateIndex, tile, el };
     placedTiles.push(placement);
     markDirty();
 
@@ -188,9 +323,10 @@ function removePlacedTile(placementId) {
     placedTiles[idx].el.remove();
     placedTiles.splice(idx, 1);
     markDirty();
+    updatePlateUI();
 }
 
-// ── Drag to Reposition (pointer events) ────────────────────────────────────
+// ── Drag to Reposition (pointer events, with snap) ──────────────────────────
 function makeDraggable(el, placementId) {
     let startX, startY, origLeft, origTop;
     let dragging = false;
@@ -211,12 +347,12 @@ function makeDraggable(el, placementId) {
         if (!dragging) return;
         const dx = e.clientX - startX;
         const dy = e.clientY - startY;
-        let newX = origLeft + dx;
-        let newY = origTop + dy;
+        let newX = snapToGrid(origLeft + dx);
+        let newY = snapToGrid(origTop + dy);
 
-        // Clamp
-        newX = Math.max(0, Math.min(newX, CANVAS_WIDTH - 60));
-        newY = Math.max(0, Math.min(newY, CANVAS_HEIGHT - 50));
+        // Clamp to plate bounds
+        newX = Math.max(0, Math.min(newX, PLATE_PX - STUD_PX * 3));
+        newY = Math.max(0, Math.min(newY, PLATE_PX - STUD_PX * 2));
 
         el.style.left = newX + 'px';
         el.style.top = newY + 'px';
@@ -236,7 +372,7 @@ function makeDraggable(el, placementId) {
     });
 }
 
-// ── Save / Load ────────────────────────────────────────────────────────────
+// ── Save / Load ─────────────────────────────────────────────────────────────
 function markDirty() {
     isDirty = true;
     saveStatus.textContent = 'Unsaved changes';
@@ -253,6 +389,7 @@ async function saveCourse() {
         tile_id: p.tileId,
         x: Math.round(p.x * 10) / 10,
         y: Math.round(p.y * 10) / 10,
+        plate_index: p.plateIndex,
     }));
 
     try {
@@ -285,16 +422,21 @@ async function loadCourse() {
     if (!resp.ok) return;
 
     const data = await resp.json();
-    if (data.tiles) {
+    if (data.tiles && data.tiles.length > 0) {
+        // Determine how many plates we need
+        const maxPlate = Math.max(...data.tiles.map(tp => tp.plate_index || 0));
+        plateCount = Math.max(plateCount, maxPlate + 1);
+
         data.tiles.forEach(tp => {
             const tile = tp.tile || allTiles.find(t => t.id === tp.tile_id);
             if (tile) {
-                addPlacedTile(tile, tp.x, tp.y, nextPlacementId++);
+                addPlacedTile(tile, tp.x, tp.y, tp.plate_index || 0, nextPlacementId++);
             }
         });
     }
     isDirty = false;
     saveStatus.textContent = '';
+    updatePlateUI();
 }
 
 // Warn on unsaved changes
@@ -313,8 +455,10 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// ── Init ───────────────────────────────────────────────────────────────────
+// ── Init ────────────────────────────────────────────────────────────────────
 async function init() {
+    initCanvas();
+    updatePlateUI();
     await loadTiles();
     await loadCourse();
 }
